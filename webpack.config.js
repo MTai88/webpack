@@ -1,77 +1,75 @@
 const path = require('path');
 const webpack = require('webpack');
+const {VueLoaderPlugin} = require('vue-loader');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const ESLintPlugin = require('eslint-webpack-plugin');
-const AssetsPlugin = require('assets-webpack-plugin');
 
-const isProd = process.env.NODE_ENV === 'production';
-const isDev = !isProd;
+const isProduction = process.env.NODE_ENV === 'production';
+const filename = ext => isProduction ? `[name].[contenthash].bundle.${ext}` : `[name].bundle.${ext}`;
 
-const filename = ext => isDev ? `bundle.${ext}` : `bundle.[hash].${ext}`;
 
-const buildPath = path.resolve(__dirname + '/build');
-
-const jsLoaders = () => {
-  const loaders = [
-    {
-      loader: 'babel-loader',
-      options: {
-        presets: ['@babel/preset-env'],
-      },
+const config = {
+    context: __dirname + "/src",
+    entry: {
+        main: './index.ts'
     },
-  ];
-
-  return loaders;
+    output: {
+        filename: filename('js'),
+        path: path.resolve(__dirname, 'dist'),
+    },
+    plugins: [
+        new CleanWebpackPlugin(),
+        new MiniCssExtractPlugin({filename: filename('css')}),
+        new ESLintPlugin({
+            extensions: ["js", "jsx", "ts", "tsx"],
+        }),
+        new webpack.ProvidePlugin({
+            $: "jquery",
+            jQuery: "jquery"
+        }),
+        new VueLoaderPlugin()
+    ],
+    module: {
+        rules: [
+            {
+                test: /\.vue$/,
+                loader: 'vue-loader',
+            },
+            {
+                test: /\.jsx?$/i,
+                loader: 'babel-loader',
+                exclude: ['/node_modules/'],
+            },
+            {
+                test: /\.tsx?$/,
+                use: 'ts-loader',
+                exclude: /node_modules/,
+            },
+            {
+                test: /\.css$/i,
+                use: [MiniCssExtractPlugin.loader, 'css-loader'],
+            },
+            {
+                test: /\.s[ac]ss$/i,
+                use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
+            },
+            {
+                test: /\.(eot|svg|ttf|woff|woff2|png|jpg|gif)$/i,
+                type: 'asset',
+            },
+        ],
+    },
+    resolve: {
+        extensions: ['.tsx', '.ts', '.jsx', '.js', '.vue', '...'],
+    },
 };
 
-module.exports = {
-  context: path.resolve(__dirname, 'src'),
-  mode: 'development',
-  entry: './index.js',
-  output: {
-    filename: filename('js'),
-    path: buildPath,
-  },
-  resolve: {
-    extensions: ['.js'],
-    alias: {
-      '@': path.resolve(__dirname, 'src'),
-    },
-  },
-  devtool: isDev ? 'source-map' : false,
-  watch: isDev,
-  plugins: [
-    new CleanWebpackPlugin(),
-    new MiniCssExtractPlugin({
-      filename: filename('css'),
-    }),
-    new ESLintPlugin(),
-    new AssetsPlugin({
-      filename: 'assets.json',
-      path: buildPath,
-      removeFullPathAutoPrefix: true,
-    }),
-    new webpack.ProvidePlugin({
-      $: "jquery",
-      jQuery: "jquery",
-    }),
-  ],
-  module: {
-    rules: [
-      {
-        test: /\.s[ac]ss$/i,
-        use: [
-          MiniCssExtractPlugin.loader,
-          'css-loader',
-          'sass-loader',
-        ],
-      },
-      {
-        test: /\.js$/,
-        exclude: /node_modules/,
-        use: jsLoaders(),
-      },
-    ],
-  },
+module.exports = () => {
+    if (isProduction) {
+        config.mode = 'production';
+    } else {
+        config.mode = 'development';
+    }
+    return config;
 };

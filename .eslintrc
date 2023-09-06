@@ -1,7 +1,7 @@
 {
   "parser": "@babel/eslint-parser",
   "parserOptions": {
-      "requireConfigFile": false
+    "requireConfigFile": false
   },
   "rules": {
     "quotes": "off",
@@ -15,9 +15,27 @@
     "require-jsdoc": "off"
   },
   "env": {
-     "es6": true,
-     "browser": true,
-     "node": true
+    "es6": true,
+    "browser": true,
+    "node": true
   },
-  "extends": ["eslint:recommended", "google"]
+  "extends": [
+    "eslint:recommended"
+  ],
+  "overrides": [
+    {
+      "files": [
+        "*.{ts,tsx}"
+      ],
+      "parser": "@typescript-eslint/parser",
+      "plugins": [
+        "@typescript-eslint"
+      ],
+      "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended"
+      ]
+    }
+  ]
 }
