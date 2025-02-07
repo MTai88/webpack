@@ -1,4 +1,5 @@
-@import '_mixins', '_variables';
+@use '_mixins';
+@use '_variables';
 
 * {
   margin: 0;
